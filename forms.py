@@ -2,22 +2,22 @@ from datetime import datetime
 from flask_wtf import FlaskForm as Form
 from wtforms import StringField, SelectField, SelectMultipleField, DateTimeField, BooleanField
 from wtforms.validators import DataRequired, AnyOf, URL, ValidationError
-import re
+import phonenumbers
 
 
-def check_genre(form, genre):
-    print(f'genre: {genre.data}')
 
-def check_phone(form, phone):
-    print(f'phone: {phone.data}')
-    phone_str = phone.data
-    pattern = r'^[0-9]{3}[- ]?[0-9]{3}[- ]?[0-9]{4}[ ]*$'
-    found = re.match(pattern, phone_str.strip())
-    if not found:
-        raise ValidationError('Incorrect phone format.')
+def check_phone(form, field):
+    if len(field.data) != 10:
+        raise ValidationError('Invalid phone number.')
+    try:
+        input_number = phonenumbers.parse(field.data, region="US")
+        if not (phonenumbers.is_valid_number(input_number)):
+            raise ValidationError('Error, phone number must be in format xxx-xxx-xxxx')
+    except Exception as e:
+        print(f'entered phone number: {field.data}')
+        print(e)
+        raise ValidationError('Error, phone number must be in format xxx-xxx-xxxx')
 
-def check_fb_link(form, facebook_link):
-    print(f'fb_link: {facebook_link.data}')
 
 class ShowForm(Form):
     artist_id = StringField(
@@ -99,7 +99,7 @@ class VenueForm(Form):
         'address', validators=[DataRequired()]
     )
     phone = StringField(
-        'phone'
+        'phone', validators=[DataRequired(), check_phone]
     )
     image_link = StringField(
         'image_link'
@@ -133,21 +133,18 @@ class VenueForm(Form):
         'facebook_link', validators=[URL()]
     )
     website_link = StringField(
-        'website_link'
+        'website_link', validators=[URL()]
     )
 
-    seeking_talent = BooleanField( 'seeking_talent' )
+    seeking_talent = BooleanField(
+        'seeking_talent', validators=[],
+        false_values=(False, 'false', '', 'n'),
+        default=False
+    )
 
     seeking_description = StringField(
         'seeking_description'
     )
-
-    def validate_phone(self, phone):
-        phone_str = phone.data
-        pattern = r'^[0-9]{3}[- ]?[0-9]{3}[- ]?[0-9]{4}[ ]*$'
-        found = re.match(pattern, phone_str.strip())
-        if not found:
-            raise ValidationError('Incorrect phone format.')
 
 
 class ArtistForm(Form):
@@ -215,7 +212,7 @@ class ArtistForm(Form):
     )
     phone = StringField(
         # TODO implement validation logic for state
-        'phone'
+        'phone', validators=[DataRequired(), check_phone]
     )
     image_link = StringField(
         'image_link'
@@ -250,19 +247,16 @@ class ArtistForm(Form):
      )
 
     website_link = StringField(
-        'website_link'
+        'website_link', validators=[URL()]
      )
 
-    seeking_venue = BooleanField( 'seeking_venue' )
+    seeking_venue = BooleanField(
+        'seeking_venue', validators=[],
+        false_values=(False, 'false', '', 'n'),
+        default=False
+    )
 
     seeking_description = StringField(
             'seeking_description'
      )
-    
-    def validate_phone(self, phone):
-        phone_str = phone.data
-        pattern = r'^[0-9]{3}[- ]?[0-9]{3}[- ]?[0-9]{4}[ ]*$'
-        found = re.match(pattern, phone_str.strip())
-        if not found:
-            raise ValidationError('Incorrect phone format.')
 
