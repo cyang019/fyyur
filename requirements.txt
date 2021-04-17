@@ -21,6 +21,7 @@ numpy==1.20.1
 pandas==1.2.3
 parso==0.8.1
 pexpect==4.8.0
+phonenumbers==8.12.21
 pickleshare==0.7.5
 prompt-toolkit==3.0.18
 psycopg2==2.8.6
